@@ -85,7 +85,9 @@ try {
     app.use(express.static(clientBuildPath));
 
     // Serve index.html for any non-API GET request (SPA fallback)
-    app.get('*', (req, res, next) => {
+    // Use '/*' instead of '*' because newer path-to-regexp used by express
+    // doesn't accept a bare '*' pattern and will throw when mounting the route.
+    app.get('/*', (req, res, next) => {
       if (req.method !== 'GET') return next();
       if (req.path.startsWith('/api')) return next();
       res.sendFile(path.join(clientBuildPath, 'index.html'));
