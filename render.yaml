@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: pranav-new-20-12-resto-project
+    env: node
+    branch: main
+    buildCommand: >-
+      cd Frontend && npm ci && npm run build && cd ../Backend && npm ci
+    startCommand: >-
+      cd Backend && npm start
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Add other env vars (MONGO_URI, JWT_SECRET, etc.) in the Render dashboard for security
