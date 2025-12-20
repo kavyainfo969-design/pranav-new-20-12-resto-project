@@ -85,12 +85,21 @@ try {
     app.use(express.static(clientBuildPath));
 
     // Serve index.html for any non-API GET request (SPA fallback)
-    // Use '/*' instead of '*' because newer path-to-regexp used by express
-    // doesn't accept a bare '*' pattern and will throw when mounting the route.
-    app.get('/*', (req, res, next) => {
-      if (req.method !== 'GET') return next();
-      if (req.path.startsWith('/api')) return next();
-      res.sendFile(path.join(clientBuildPath, 'index.html'));
+    // Avoid registering a route pattern (like '*' or '/*') which can throw
+    // on some path-to-regexp versions. Instead use a middleware that checks
+    // the request and serves index.html when appropriate.
+    app.use((req, res, next) => {
+      try {
+        if (req.method !== 'GET') return next();
+        if (req.path.startsWith('/api')) return next();
+        // If the request accepts HTML, return the SPA entrypoint
+        const accepts = req.headers.accept || '';
+        if (accepts.indexOf('text/html') === -1 && accepts.indexOf('*/*') === -1) return next();
+        return res.sendFile(path.join(clientBuildPath, 'index.html'));
+      } catch (e) {
+        console.error('Error in SPA fallback middleware:', e);
+        return next(e);
+      }
     });
   }
 } catch (err) {
