@@ -85,9 +85,9 @@ const Footer: React.FC = () => {
             <div className="col-6 col-sm-5 col-md-4 col-lg-2 px-3">
               <h6 className="fw-bold mb-3 text-uppercase small">Quick Links</h6>
               <ul className="list-unstyled small">
-                <li className="mb-2"><a href="/category" className="text-light text-decoration-none">Menu</a></li>
-                <li className="mb-2"><a href="/cart" className="text-light text-decoration-none">Cart</a></li>
-                <li className="mb-2"><a href="/admin-panel" className="text-light text-decoration-none">Admin Login</a></li>
+                <li className="mb-2"><a href="#/category" className="text-light text-decoration-none">Menu</a></li>
+                <li className="mb-2"><a href="#/cart" className="text-light text-decoration-none">Cart</a></li>
+                <li className="mb-2"><a href="#/admin-panel" className="text-light text-decoration-none">Admin Login</a></li>
               </ul>
             </div>
 
@@ -95,9 +95,9 @@ const Footer: React.FC = () => {
             <div className="col-6 col-sm-5 col-md-4 col-lg-2 px-3">
               <h6 className="fw-bold mb-3 text-uppercase small">Legal</h6>
               <ul className="list-unstyled small">
-                <li className="mb-2"><a href="/help-support" className="text-light text-decoration-none">Help & Support</a></li>
-                <li className="mb-2"><a href="/terms-conditions" className="text-light text-decoration-none">Terms & Conditions</a></li>
-                <li><a href="/privacy" className="text-light text-decoration-none">Privacy Policy</a></li>
+                <li className="mb-2"><a href="#/help-support" className="text-light text-decoration-none">Help & Support</a></li>
+                <li className="mb-2"><a href="#/terms-conditions" className="text-light text-decoration-none">Terms & Conditions</a></li>
+                <li><a href="#/privacy" className="text-light text-decoration-none">Privacy Policy</a></li>
               </ul>
             </div>
 
