@@ -95,6 +95,8 @@ try {
         // If the request accepts HTML, return the SPA entrypoint
         const accepts = req.headers.accept || '';
         if (accepts.indexOf('text/html') === -1 && accepts.indexOf('*/*') === -1) return next();
+        // Helpful debug log so we can see in deployment logs when the SPA fallback is used
+        console.log(`[SPA fallback] serving index.html for ${req.method} ${req.originalUrl}`);
         return res.sendFile(path.join(clientBuildPath, 'index.html'));
       } catch (e) {
         console.error('Error in SPA fallback middleware:', e);
