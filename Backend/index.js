@@ -6,6 +6,8 @@ require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const path = require('path');
+const fs = require('fs');
 
 // Middleware - during local development allow all origins so the frontend can reach the API
 // Configure CORS behavior:
@@ -73,6 +75,25 @@ console.log('📌 Payments routes mounted at /api/payments');
 app.get("/", (req, res) => {
   res.send("Backend is running!");
 });
+
+// Serve frontend static files when a build is present (useful for single-repo deployments)
+// This will let SPA routes like /admin-panel return the frontend's index.html instead of 404.
+try {
+  const clientBuildPath = path.join(__dirname, '..', 'Frontend', 'dist');
+  if (fs.existsSync(clientBuildPath)) {
+    console.log(`📦 Serving frontend from ${clientBuildPath}`);
+    app.use(express.static(clientBuildPath));
+
+    // Serve index.html for any non-API GET request (SPA fallback)
+    app.get('*', (req, res, next) => {
+      if (req.method !== 'GET') return next();
+      if (req.path.startsWith('/api')) return next();
+      res.sendFile(path.join(clientBuildPath, 'index.html'));
+    });
+  }
+} catch (err) {
+  console.error('Error while configuring static frontend serving:', err);
+}
 
 // ==========================
 // Start Server
