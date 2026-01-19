@@ -351,7 +351,7 @@ const Signup: React.FC<SignupProps> = ({ onClose, onSwitchToLogin, onSignup }) =
 
     setIsLoading(true)
     try {
-  const { res, json } = await fetchJson(`${API_BASE}/api/auth/signup`, {
+      const { res, json } = await fetchJson(`${API_BASE}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -360,7 +360,7 @@ const Signup: React.FC<SignupProps> = ({ onClose, onSwitchToLogin, onSignup }) =
           phone: formData.phone,
           password: formData.password,
         }),
-      }))
+      })
 
       const data = json || null
       if (!res.ok) {
@@ -389,11 +389,11 @@ const Signup: React.FC<SignupProps> = ({ onClose, onSwitchToLogin, onSignup }) =
     // Return the promise so the OTP modal can await it
     return (async () => {
       try {
-  const { res, json } = await fetchJson(`${API_BASE}/api/auth/verify-otp`, {
+        const { res, json } = await fetchJson(`${API_BASE}/api/auth/verify-otp`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: formData.email, otp }),
-        }))
+        })
         const data = json || null
   if (!res.ok) throw new Error((data && data.message) || 'OTP verification failed')
         console.log('OTP Verified:', data)
@@ -422,7 +422,7 @@ const Signup: React.FC<SignupProps> = ({ onClose, onSwitchToLogin, onSignup }) =
   const handleOTPResend = () => {
     ;(async () => {
       try {
-  const { res, json } = await fetchJson(`${API_BASE}/api/auth/signup`, {
+        const { res, json } = await fetchJson(`${API_BASE}/api/auth/signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -431,9 +431,9 @@ const Signup: React.FC<SignupProps> = ({ onClose, onSwitchToLogin, onSignup }) =
             phone: formData.phone,
             password: formData.password || 'TempPass123!'
           }),
-        }))
+        })
         const data = json || null
-  if (!res.ok) throw new Error((data && data.message) || 'Resend failed')
+        if (!res.ok) throw new Error((data && data.message) || 'Resend failed')
         alert('OTP resent to ' + formData.email)
       } catch (err: any) {
         alert(err.message || 'Failed to resend OTP')
