@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { API_BASE } from '../../utils/apiBase'
+import { fetchJson } from '../../utils/fetchJson'
 import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa'
 
 interface LoginProps {
@@ -49,13 +50,13 @@ const Login: React.FC<LoginProps> = ({ onClose, onSwitchToSignup, onLogin }) => 
 
     setIsLoading(true)
     try {
-  const res = await fetch(`${API_BASE}/api/auth/login`, {
+      const { res, json, text } = await fetchJson(`${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       })
-  const data = await res.json()
-  if (!res.ok) throw new Error(data.message || 'Login failed')
+  const data = json || null
+  if (!res.ok) throw new Error((data && data.message) || text || 'Login failed')
   // Pass token and user object to parent
   onLogin(data.token, data.user)
     } catch (err: any) {

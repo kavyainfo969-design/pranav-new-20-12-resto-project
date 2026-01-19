@@ -13,6 +13,7 @@ import {
 import AdminLayout from "../components/AdminLayout";
 import { useAuth } from "../../context/AuthContext";
 import { API_BASE } from '../../utils/apiBase'
+import { fetchJson } from '../../utils/fetchJson'
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -24,10 +25,10 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     let mounted = true
     const fetchOrders = async () => {
-      try {
-  const res = await fetch(`${API_BASE}/api/orders`)
-        if (!res.ok) throw new Error('Failed to fetch')
-        const data = await res.json()
+  try {
+  const { res, json } = await fetchJson(`${API_BASE}/api/orders`)
+    if (!res.ok) throw new Error('Failed to fetch')
+    const data = json || null
         if (mounted && data && Array.isArray(data.orders)) {
           // Map backend orders into the UI shape expected by the dashboard
           const backendMapped = data.orders.map((o: any) => ({

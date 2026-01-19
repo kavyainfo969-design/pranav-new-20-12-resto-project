@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { API_BASE } from '../../utils/apiBase'
+import { fetchJson } from '../../utils/fetchJson'
 import { useNavigate } from 'react-router-dom'
 import Login from '../pages/Login'
 import Signup from '../pages/Signup'
@@ -53,15 +54,15 @@ const WelcomePage = () => {
         }
 
         // Fallback: if called with email/password strings, attempt login
-  const res = await fetch(`${API_BASE}/api/auth/login`, {
+        const { res, json } = await fetchJson(`${API_BASE}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password }),
         })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.message || 'Login failed')
-        if (data.token) localStorage.setItem('token', data.token)
-          if (data.user) localStorage.setItem('user', JSON.stringify(data.user))
+        const data = json || null
+        if (!res.ok) throw new Error((data && data.message) || 'Login failed')
+        if (data && data.token) localStorage.setItem('token', data.token)
+          if (data && data.user) localStorage.setItem('user', JSON.stringify(data.user))
         setShowAuthModal(false)
         navigate('/category')
       } catch (err) {
@@ -86,15 +87,15 @@ const WelcomePage = () => {
           return
         }
 
-  const res = await fetch(`${API_BASE}/api/auth/login`, {
+        const { res, json } = await fetchJson(`${API_BASE}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: userData.email, password: userData.password }),
         })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.message || 'Auto-login failed')
-  if (data.token) localStorage.setItem('token', data.token)
-  if (data.user) localStorage.setItem('user', JSON.stringify(data.user))
+        const data = json || null
+        if (!res.ok) throw new Error((data && data.message) || 'Auto-login failed')
+  if (data && data.token) localStorage.setItem('token', data.token)
+  if (data && data.user) localStorage.setItem('user', JSON.stringify(data.user))
   setShowAuthModal(false)
   showTemporaryToast(`Welcome, ${data.user?.name || 'User'}`)
   navigate('/category')

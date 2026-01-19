@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { API_BASE } from '../../utils/apiBase'
+import { fetchJson } from '../../utils/fetchJson'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../../context/CartContext'
 import { FaCreditCard, FaMoneyBillWave, FaWallet } from 'react-icons/fa'
@@ -47,14 +48,14 @@ const Checkout: React.FC = () => {
           total: total
         }
 
-  const res = await fetch(`${API_BASE}/api/orders`, {
+        const { res, json } = await fetchJson(`${API_BASE}/api/orders`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
           body: JSON.stringify(orderPayload)
         })
 
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.message || 'Order failed')
+        const data = json || null
+        if (!res.ok) throw new Error((data && data.message) || 'Order failed')
         clearCart()
         navigate('/order-success', { state: { orderId: data.order._id } })
       } catch (err: any) {

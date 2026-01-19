@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { API_BASE } from '../../utils/apiBase'
+import { fetchJson } from '../../utils/fetchJson'
 import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaPhone, FaArrowLeft } from 'react-icons/fa'
 
 interface SignupProps {
@@ -73,19 +74,19 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({ email, onVerify, onRe
     // Call backend to resend OTP
     (async () => {
       try {
-  const res = await fetch(`${API_BASE}/api/auth/resend-otp`, {
+        const { res, json } = await fetchJson(`${API_BASE}/api/auth/resend-otp`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email })
         })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.message || 'Resend failed')
+        const data = json || null
+        if (!res.ok) throw new Error((data && data.message) || 'Resend failed')
         alert('OTP resent to ' + email)
         // reset local timers / UI
         setResendTimer(30)
         setCanResend(false)
         setIsExpired(false)
-  setOtpArr(['', '', '', '', '', ''])
+        setOtpArr(['', '', '', '', '', ''])
         setOtpError('')
       } catch (err: any) {
         console.error('Resend OTP error:', err)
@@ -350,7 +351,7 @@ const Signup: React.FC<SignupProps> = ({ onClose, onSwitchToLogin, onSignup }) =
 
     setIsLoading(true)
     try {
-  const res = await fetch(`${API_BASE}/api/auth/signup`, {
+  const { res, json } = await fetchJson(`${API_BASE}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -359,9 +360,9 @@ const Signup: React.FC<SignupProps> = ({ onClose, onSwitchToLogin, onSignup }) =
           phone: formData.phone,
           password: formData.password,
         }),
-      })
+      }))
 
-      const data = await res.json()
+      const data = json || null
       if (!res.ok) {
         // If the user already exists and is verified, prompt to login
         if (data && data.message && data.message.toLowerCase().includes('already registered')) {
@@ -388,13 +389,13 @@ const Signup: React.FC<SignupProps> = ({ onClose, onSwitchToLogin, onSignup }) =
     // Return the promise so the OTP modal can await it
     return (async () => {
       try {
-  const res = await fetch(`${API_BASE}/api/auth/verify-otp`, {
+  const { res, json } = await fetchJson(`${API_BASE}/api/auth/verify-otp`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: formData.email, otp }),
-        })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.message || 'OTP verification failed')
+        }))
+        const data = json || null
+  if (!res.ok) throw new Error((data && data.message) || 'OTP verification failed')
         console.log('OTP Verified:', data)
         // Auto-login: if backend returned a token, pass token and user up to parent
         if (data && data.token && data.user) {
@@ -421,7 +422,7 @@ const Signup: React.FC<SignupProps> = ({ onClose, onSwitchToLogin, onSignup }) =
   const handleOTPResend = () => {
     ;(async () => {
       try {
-  const res = await fetch(`${API_BASE}/api/auth/signup`, {
+  const { res, json } = await fetchJson(`${API_BASE}/api/auth/signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -430,9 +431,9 @@ const Signup: React.FC<SignupProps> = ({ onClose, onSwitchToLogin, onSignup }) =
             phone: formData.phone,
             password: formData.password || 'TempPass123!'
           }),
-        })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.message || 'Resend failed')
+        }))
+        const data = json || null
+  if (!res.ok) throw new Error((data && data.message) || 'Resend failed')
         alert('OTP resent to ' + formData.email)
       } catch (err: any) {
         alert(err.message || 'Failed to resend OTP')

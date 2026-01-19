@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { API_BASE } from '../../utils/apiBase'
+import { fetchJson } from '../../utils/fetchJson'
 import { Link, useNavigate } from 'react-router-dom'
 import { FaCreditCard, FaMobileAlt, FaWallet, FaArrowLeft, FaLock, FaUtensils, FaShoppingBag } from 'react-icons/fa'
 import { FaCheckCircle } from 'react-icons/fa'
@@ -523,33 +524,26 @@ const Payment: React.FC = () => {
       // Persist order to backend so admin dashboard can fetch it.
       const orderPayload = {
         restaurantId: import.meta.env.VITE_RESTAURANT_ID || 'default_restaurant',
-        items: cart.map(ci => ({
-          name: ci.name,
-          price: ci.price,
-          quantity: ci.quantity,
-          spiceLevel: ci.spiceLevel,
-          subtotal: (ci.price * ci.quantity)
-        })),
+        items: cart.map(ci => ({ name: ci.name, price: ci.price, quantity: ci.quantity, spiceLevel: ci.spiceLevel, subtotal: (ci.price * ci.quantity) })),
         total: parseFloat(total.toFixed(2)),
         paymentStatus: 'paid'
       }
 
       ;(async () => {
         try {
-          const res = await fetch(`${API_BASE}/api/orders`, {
+          const { res, json } = await fetchJson(`${API_BASE}/api/orders`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(orderPayload)
           })
           if (!res.ok) {
-            console.warn('Failed to persist order to backend', await res.text())
+            console.warn('Failed to persist order to backend', json || 'no-json-response')
           } else {
-            const data = await res.json()
-            // save server id so tracking can reference it
-            const serverId = data.order && data.order._id ? data.order._id : ''
-            sessionStorage.setItem('serverOrderId', serverId)
-            // If backend returned an _id, attach it to the client-side order so tracking and admin can correlate
-            if (serverId) order.serverId = serverId
+            const data = json || null
+            const serverId = data && data.order && (data.order._id || data.order.id) ? (data.order._id || data.order.id) : ''
+            if (serverId) {
+              sessionStorage.setItem('serverOrderId', serverId)
+            }
           }
         } catch (err) {
           console.warn('Order persist error:', err)
@@ -562,7 +556,7 @@ const Payment: React.FC = () => {
         const ordersArr = Array.isArray(stored) ? stored : []
         const clientOrder = {
           id: order.id,
-          serverId: order.serverId || '',
+          serverId: sessionStorage.getItem('serverOrderId') || '',
           createdAt: order.createdAt,
           total: order.total,
           paymentMethod: order.paymentMethod,

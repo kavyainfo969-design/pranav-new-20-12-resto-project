@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { API_BASE } from '../../utils/apiBase'
+import { fetchJson } from '../../utils/fetchJson'
 import { useLocation, Link, useNavigate } from 'react-router-dom'
 import { menuItems as localMenuItems } from '../../data/menuItems'
 import { useCart } from '../../context/CartContext'
@@ -132,12 +133,15 @@ const Menu: React.FC = () => {
     let mounted = true
     ;(async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/menu`)
-        if (!res.ok) throw new Error('Failed to fetch')
-        const data = await res.json()
-        if (mounted) {
-          if (data && Array.isArray(data.items)) setBackendItems(data.items)
-          else setBackendItems([])
+  const { res, json } = await fetchJson(`${API_BASE}/api/menu`)
+        if (!res.ok) {
+          if (mounted) setBackendItems([])
+        } else {
+          const data = json || null
+          if (mounted) {
+            if (data && Array.isArray(data.items)) setBackendItems(data.items)
+            else setBackendItems([])
+          }
         }
       } catch (err) {
         if (mounted) setBackendItems(null)

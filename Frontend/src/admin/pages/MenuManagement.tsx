@@ -72,11 +72,13 @@ const MenuManagement: React.FC = () => {
   useEffect(() => {
     (async () => {
       try {
-        const res = await authFetch("/api/menu");
-        if (!res.ok) throw new Error("Failed to fetch menu");
-        const data = await res.json();
+  const res = await authFetch("/api/menu");
+  if (!res.ok) throw new Error("Failed to fetch menu");
+  const text = await res.text();
+  let data = null
+  try { data = text ? JSON.parse(text) : null } catch (e) { data = null }
 
-        const items = data.items || data;
+  const items = (data && data.items) ? data.items : data || [];
 
         if (Array.isArray(items)) {
           setLocalMenuItems(

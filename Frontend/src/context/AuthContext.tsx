@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { API_BASE } from '../utils/apiBase'
+import { fetchJson } from '../utils/fetchJson'
 
 export type Role = "admin" | "superadmin" | null;
 
@@ -59,17 +60,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!username || !password) throw new Error('Username and password required')
 
     // Try backend login with several likely email variants so demo creds work.
-  const apiUrl = API_BASE
+    const apiUrl = API_BASE
     const candidateEmails = [username, `${username}@local`, `${username}@restom.com`, `${username}@resto.com`, `${username}@kavyaresto`]
     for (const email of candidateEmails) {
       try {
-        const res = await fetch(`${apiUrl}/api/auth/login`, {
+        // Use safe fetch that tolerates empty/non-JSON responses
+        const { res, json } = await fetchJson(`${apiUrl}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password })
         })
         if (!res.ok) continue
-        const body = await res.json()
+        const body = json || {}
         const tok = body.token
         const u = body.user || { id: body.user?.id || body.user?._id || email, name: body.user?.name || username, email: email, role: (body.user && body.user.role) || 'admin' }
         if (tok) {
