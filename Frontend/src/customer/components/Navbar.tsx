@@ -15,6 +15,10 @@ const Navbar: React.FC = () => {
   } catch (e) {
     auth = null
   }
+
+  // Consider user authenticated if context has a user OR token exists in localStorage
+  const tokenFromStorage = typeof window !== 'undefined' ? (localStorage.getItem('auth_token') || localStorage.getItem('token')) : null
+  const isLoggedIn = Boolean((auth && auth.user) || tokenFromStorage)
  
   if (isAdminRoute) {
     return (
@@ -90,10 +94,20 @@ const Navbar: React.FC = () => {
           </Link>
 
           {/* Auth action buttons inserted when user is logged in */}
-          {auth && auth.user && (
+          {isLoggedIn && (
             <div className="d-flex align-items-center ms-3 gap-2">
               <Link to="/order-tracking" className="btn btn-outline-secondary">Track Order</Link>
-              <button className="btn btn-outline-danger" onClick={() => { auth.logout(); window.location.href = '/' }}>Logout</button>
+              <button
+                className="btn btn-outline-danger"
+                onClick={() => {
+                  try { auth && auth.logout() } catch (_) {}
+                  // Clear legacy token keys
+                  try { localStorage.removeItem('auth_token'); localStorage.removeItem('token'); localStorage.removeItem('auth_user'); } catch (e) {}
+                  window.location.href = '/'
+                }}
+              >
+                Logout
+              </button>
             </div>
           )}
         </div>
@@ -117,10 +131,19 @@ const Navbar: React.FC = () => {
               </span>
             )}
           </Link>
-          {auth && auth.user && (
-              <>
+          {isLoggedIn && (
+            <>
               <Link to="/order-tracking" className="btn btn-sm btn-outline-secondary me-2 d-inline-block d-lg-none">Track</Link>
-              <button className="btn btn-sm btn-outline-danger" onClick={() => { auth.logout(); window.location.href = '/' }}>Logout</button>
+              <button
+                className="btn btn-sm btn-outline-danger"
+                onClick={() => {
+                  try { auth && auth.logout() } catch (_) {}
+                  try { localStorage.removeItem('auth_token'); localStorage.removeItem('token'); localStorage.removeItem('auth_user'); } catch (e) {}
+                  window.location.href = '/'
+                }}
+              >
+                Logout
+              </button>
             </>
           )}
         </div>
