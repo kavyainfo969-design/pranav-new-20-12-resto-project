@@ -566,6 +566,11 @@ const Payment: React.FC = () => {
         }
         ordersArr.push(clientOrder)
         localStorage.setItem('orders', JSON.stringify(ordersArr))
+        // also store a convenient lastOrder object (used by OrderSuccess QR generation)
+        const totalQuantity = clientOrder.items.reduce((s:number, it:any) => s + (it.quantity || 0), 0)
+        try {
+          localStorage.setItem('lastOrder', JSON.stringify({ orderId: clientOrder.id, totalPrice: clientOrder.total, totalQuantity }))
+        } catch (e) { /* ignore */ }
       } catch (e) {
         console.warn('Failed to save local order:', e)
       }
@@ -581,7 +586,9 @@ const Payment: React.FC = () => {
     setTimeout(() => {
       setShowSuccessPopup(false)
       closeModal()
-      navigate('/order-tracking')
+      // Navigate to order success page and pass order details so QR is generated immediately
+      const totalQuantity = cart.reduce((s, it) => s + (it.quantity || 0), 0)
+      navigate('/order-success', { state: { orderId: order.id, price: order.total, quantity: totalQuantity } })
     }, 1500)
   }
 

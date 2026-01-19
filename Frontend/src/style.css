@@ -21,6 +21,95 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Dark mode overrides applied when .dark-mode class is present on <html> or <body> */
+body.dark-mode, html.dark-mode {
+  --primary-color: #FFB86B;
+  --secondary-color: #FF8A4B;
+  --tertiary-color: #94A3B8;
+  --accent-color: #F59E0B;
+  --background-color: #0b1220;
+  color-scheme: dark;
+  color: #e6eef8;
+  background-color: var(--background-color);
+}
+
+/* Make some default elements suit dark mode */
+body.dark-mode a { color: #9fb7ff }
+body.dark-mode a:hover { color: #cfe0ff }
+body.dark-mode button { background-color: rgba(255,255,255,0.04); color: #e6eef8 }
+body.dark-mode .card { background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.03) }
+
+/* Stronger overrides for common Bootstrap classes so dark mode is visible */
+body.dark-mode, html.dark-mode {
+  transition: background-color 250ms ease, color 250ms ease;
+}
+
+body.dark-mode .navbar, html.dark-mode .navbar, body.dark-mode .navbar-light.bg-white, html.dark-mode .navbar-light.bg-white {
+  background-color: #071226 !important;
+  color: #e6eef8 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+body.dark-mode .bg-white, html.dark-mode .bg-white { background-color: transparent !important; }
+
+body.dark-mode .card, html.dark-mode .card, body.dark-mode .modal-content, html.dark-mode .modal-content, body.dark-mode .dropdown-menu, html.dark-mode .dropdown-menu {
+  background-color: rgba(255,255,255,0.04) !important;
+  color: #e6eef8 !important;
+  border: 1px solid rgba(255,255,255,0.04) !important;
+}
+
+body.dark-mode .form-control, html.dark-mode .form-control {
+  background-color: #0f1724 !important;
+  color: #e6eef8 !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+body.dark-mode .input-group-text, html.dark-mode .input-group-text {
+  background-color: rgba(255,255,255,0.03) !important;
+  color: #e6eef8 !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+body.dark-mode .btn, html.dark-mode .btn {
+  background-color: rgba(255,255,255,0.03) !important;
+  color: #e6eef8 !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+body.dark-mode .btn-outline-secondary, html.dark-mode .btn-outline-secondary {
+  color: #d6deff !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+body.dark-mode .btn-outline-danger, html.dark-mode .btn-outline-danger {
+  color: #ffb3a8 !important;
+  border-color: rgba(255,255,255,0.06) !important;
+}
+
+body.dark-mode .text-muted, html.dark-mode .text-muted { color: rgba(230,238,248,0.6) !important; }
+
+/* make badges readable */
+body.dark-mode .badge.bg-white, html.dark-mode .badge.bg-white { background-color: rgba(255,255,255,0.08) !important; color: #071226 !important; }
+
+/* Smooth transitions for theme changes */
+body, html, .navbar, .card, .form-control, .btn, .modal-content, .dropdown-menu {
+  transition: background-color 300ms ease, color 300ms ease, border-color 300ms ease, box-shadow 200ms ease;
+}
+
+/* Logo transitions and fallback filter for dark mode */
+.logo {
+  transition: filter 300ms ease, opacity 200ms ease;
+  will-change: filter, opacity;
+}
+.logo-dark-filter {
+  filter: brightness(0) invert(1) contrast(1.05) saturate(0.9);
+}
+
+/* Make high-contrast variant when dark mode is active and no dark logo available */
+body.dark-mode .logo-dark-filter, html.dark-mode .logo-dark-filter {
+  filter: brightness(1.6) saturate(0.9) contrast(1.05);
+}
+
 a {
   font-weight: 500;
   color: #646cff;

@@ -5,7 +5,13 @@ import { FaCheckCircle, FaHome, FaClock, FaUtensils, FaShippingFast, FaMapMarker
 const OrderSuccess: React.FC = () => {
   const location = useLocation()
   const orderId = location.state?.orderId || 'FF123456789'
+  // Try to read price and quantity from location state; fall back to lastOrder in localStorage
+  const orderPriceFromState = location.state?.price || location.state?.totalPrice || location.state?.orderPrice
+  const orderQtyFromState = location.state?.quantity || location.state?.totalQuantity || location.state?.items?.reduce?.((s: number, it: any) => s + (it.quantity || 0), 0)
   const [currentStep, setCurrentStep] = useState(0)
+
+  const [qrBlobUrl, setQrBlobUrl] = useState<string | null>(null)
+  const [qrLoading, setQrLoading] = useState(false)
 
   // Order tracking steps
   const trackingSteps = [
@@ -23,6 +29,45 @@ const OrderSuccess: React.FC = () => {
 
     return () => clearInterval(timer)
   }, [trackingSteps.length])
+
+  // Build QR content from available order details (id, price, qty)
+  useEffect(() => {
+    (async () => {
+      try {
+        // Determine price/quantity from state or localStorage
+        let price = orderPriceFromState
+        let qty = orderQtyFromState
+        if ((!price || !qty) && typeof window !== 'undefined') {
+          const last = localStorage.getItem('lastOrder') || localStorage.getItem('order') || null
+          if (last) {
+            try {
+              const o = JSON.parse(last)
+              price = price || o.totalPrice || o.price || o.amount || o.orderPrice
+              qty = qty || o.totalQuantity || o.quantity || (o.items && o.items.reduce ? o.items.reduce((s: number, it: any) => s + (it.quantity || 0), 0) : undefined)
+            } catch (e) {
+              // ignore parse errors
+            }
+          }
+        }
+
+        if (!price && !qty) return // nothing to encode
+
+        const payload = JSON.stringify({ orderId, price, quantity: qty })
+        const api = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(payload)}`
+        setQrLoading(true)
+        // Fetch as blob so we can offer a download link
+        const resp = await fetch(api)
+        if (!resp.ok) { setQrLoading(false); return }
+        const blob = await resp.blob()
+        const url = URL.createObjectURL(blob)
+        setQrBlobUrl(url)
+        setQrLoading(false)
+      } catch (err) {
+        setQrLoading(false)
+      }
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderId, orderPriceFromState, orderQtyFromState])
 
   return (
     <div className="container py-5" style={{ background: 'linear-gradient(to bottom, #fffaf4, #fff3e0)', minHeight: '100vh' }}>
@@ -66,6 +111,28 @@ const OrderSuccess: React.FC = () => {
               <small className="opacity-75">Please save this order ID for your reference</small>
             </div>
           </div>
+
+          {/* QR Code Card (price + quantity) */}
+          {(qrBlobUrl || qrLoading) && (
+            <div className="card border-0 shadow-sm mb-5">
+              <div className="card-body text-center p-4">
+                <h6 className="mb-3">Order QR</h6>
+                {qrLoading ? (
+                  <div className="text-muted">Generating QR...</div>
+                ) : (
+                  <>
+                    <img src={qrBlobUrl || undefined} alt="Order QR" style={{ width: 200, height: 200 }} />
+                    <div className="mt-3">
+                      {qrBlobUrl && (
+                        <a href={qrBlobUrl} className="btn btn-outline-primary me-2" download={`order-${orderId}-qr.png`}>Download QR</a>
+                      )}
+                      <button className="btn btn-outline-secondary" onClick={() => { navigator.clipboard?.writeText(JSON.stringify({ orderId })) }}>Copy Order ID</button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Order Tracking */}
           <div className="card border-0 shadow-sm mb-5">

@@ -12,6 +12,8 @@ const Category: React.FC = () => {
   // Active order banner removed: orders are now shown in Order Tracking page and via Admin dashboard
   const navigate = useNavigate()
 
+  // ...existing code (no page-specific theme handler; theme handled globally in Navbar)
+
   // NOTE: we intentionally no longer show a site-wide "Active Order" banner here.
   // Orders are persisted to localStorage by the payment flow and displayed on /order-tracking.
 
@@ -82,6 +84,7 @@ const Category: React.FC = () => {
     <div className="container py-5" style={{ backgroundColor: 'var(--background-color)', minHeight: '100vh' }}>
       {/* 🔍 Search Bar */}
       <div className="row justify-content-center mb-4 position-relative">
+        
         <div className="col-12 col-md-8 col-lg-6">
           {/* Active order banner removed per spec; users will see placed orders on the Order Tracking page. */}
           <div

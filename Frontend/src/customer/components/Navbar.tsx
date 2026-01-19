@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { FaShoppingCart, FaUtensils } from 'react-icons/fa'
+import { FaShoppingCart, FaUtensils, FaMoon, FaSun } from 'react-icons/fa'
 import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
 // import {lg} from 'Logo.png';
@@ -15,6 +15,43 @@ const Navbar: React.FC = () => {
   } catch (e) {
     auth = null
   }
+
+  // Global theme toggle (dark/light) - persisted to localStorage
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    try {
+      const saved = typeof window !== 'undefined' ? localStorage.getItem('theme') : null
+      if (saved) return saved === 'dark'
+      return (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) || false
+    } catch (e) {
+      return false
+    }
+  })
+
+  useEffect(() => {
+    try {
+      const root = document.documentElement
+      const body = document.body
+      if (darkMode) {
+        root.classList.add('dark-mode')
+        body.classList.add('dark-mode')
+      } else {
+        root.classList.remove('dark-mode')
+        body.classList.remove('dark-mode')
+      }
+      localStorage.setItem('theme', darkMode ? 'dark' : 'light')
+    } catch (e) {}
+  }, [darkMode])
+
+  // Logo swap: prefer a dark-mode logo asset when darkMode is active.
+  const logoDefault = '/assets/images/Logo.png'
+  const logoDark = '/assets/images/Logo-dark.png'
+  const [logoSrc, setLogoSrc] = useState<string>(logoDefault)
+
+  useEffect(() => {
+    try {
+      setLogoSrc(darkMode ? logoDark : logoDefault)
+    } catch (e) {}
+  }, [darkMode])
 
   // Consider user authenticated if context has a user OR token exists in localStorage
   const tokenFromStorage = typeof window !== 'undefined' ? (localStorage.getItem('auth_token') || localStorage.getItem('token')) : null
@@ -59,15 +96,26 @@ const Navbar: React.FC = () => {
  
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-0 position-sticky top-0" style={{ zIndex: 1000 }}>
-      <div className="container d-flex justify-content-between align-items-center">
+      <div className="container d-flex justify-content-between align-items-center position-relative">
        
-        {/* 🍴 Brand */}
+        {/* 🍴 Brand (logo left) */}
         <Link className="navbar-brand fw-bold text-success fs-4 d-flex align-items-center" to="/">
           <img
-            src="/assets/images/Logo.png"
+            src={logoSrc}
             alt="Logo"
-            className="me-2"
+            className="me-2 logo"
             style={{ width: '200px', height: '70px', objectFit: 'cover' }}
+            onError={(e) => {
+              // If the dark logo asset isn't present, fall back to the default logo
+              // and apply a CSS filter to improve contrast in dark mode.
+              const img = e.currentTarget as HTMLImageElement
+              if ((img.dataset || (img as any).__fallback)) return
+              try {
+                ;(img as any).__fallback = true
+                img.src = logoDefault
+                img.classList.add('logo-dark-filter')
+              } catch (err) {}
+            }}
           />
           {/* <span className="text-primary">RestoM</span> */}
         </Link>
@@ -92,6 +140,33 @@ const Navbar: React.FC = () => {
               </span>
             )}
           </Link>
+
+          {/* Theme toggle near cart */}
+          <button
+            className="btn btn-sm ms-2"
+            onClick={() => setDarkMode(d => !d)}
+            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            style={{ borderRadius: 20, background: 'transparent', border: '1px solid rgba(0,0,0,0.08)' }}
+          >
+            {darkMode ? <FaSun /> : <FaMoon />}
+          </button>
+
+          {/* 👋 Centered greeting for md+ screens */}
+          {isLoggedIn && (
+            <div
+              className="d-none d-md-flex align-items-center navbar-greeting-center text-secondary small"
+              style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', pointerEvents: 'auto' }}
+            >
+              {(() => {
+                try {
+                  const n = (auth && auth.user && auth.user.name) || (typeof window !== 'undefined' && (localStorage.getItem('auth_user') || localStorage.getItem('user')) ? JSON.parse(localStorage.getItem('auth_user') || localStorage.getItem('user') || '{}').name : null)
+                  if (!n) return null
+                  const first = (n + '').split(' ')[0]
+                  return <>Hi, <span className="fw-semibold text-dark ms-1">{first}</span></>
+                } catch (e) { return null }
+              })()}
+            </div>
+          )}
 
           {/* Auth action buttons inserted when user is logged in */}
           {isLoggedIn && (
@@ -131,6 +206,15 @@ const Navbar: React.FC = () => {
               </span>
             )}
           </Link>
+          {/* Mobile theme toggle */}
+          <button
+            className="btn btn-sm"
+            onClick={() => setDarkMode(d => !d)}
+            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            style={{ borderRadius: 12, background: 'transparent', border: '1px solid rgba(0,0,0,0.08)' }}
+          >
+            {darkMode ? <FaSun /> : <FaMoon />}
+          </button>
           {isLoggedIn && (
             <>
               <Link to="/order-tracking" className="btn btn-sm btn-outline-secondary me-2 d-inline-block d-lg-none">Track</Link>
