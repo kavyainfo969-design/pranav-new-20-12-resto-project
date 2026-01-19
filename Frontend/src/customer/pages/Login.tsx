@@ -55,10 +55,11 @@ const Login: React.FC<LoginProps> = ({ onClose, onSwitchToSignup, onLogin }) => 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       })
-  const data = json || null
+  // Ensure `data` is an object so we don't try to read properties of null
+  const data: any = json || {}
   if (!res.ok) throw new Error((data && data.message) || text || 'Login failed')
-  // Pass token and user object to parent
-  onLogin(data.token, data.user)
+  // Pass token and user object to parent (guard missing fields)
+  onLogin(data.token ?? '', data.user ?? null)
     } catch (err: any) {
       // Provide a clearer message for network / CORS failures which show up as "Failed to fetch"
       console.error('Login fetch error:', err)
