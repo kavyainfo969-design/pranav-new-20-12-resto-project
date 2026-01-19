@@ -40,6 +40,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch {}
   }, []);
 
+  // If we have a token but no user object yet, try to hydrate the user from the server
+  useEffect(() => {
+    const tryHydrate = async () => {
+      try {
+        const t = token || localStorage.getItem('auth_token') || localStorage.getItem('token')
+        if (!t || user) return
+        // call protected profile endpoint to get user info
+        const { res, json } = await fetchJson(`${API_BASE}/api/auth/profile`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${t}` }
+        })
+        if (!res.ok) {
+          // invalid token - clear
+          setToken(null)
+          try { localStorage.removeItem('auth_token'); localStorage.removeItem('token'); } catch (e) {}
+          return
+        }
+        const body = json || {}
+        if (body && body.user) setUser(body.user)
+      } catch (err) {
+        // ignore - leave unauthenticated
+      }
+    }
+    tryHydrate()
+    // only run when token or user changes
+  }, [token, user])
+
   // Save login state
   useEffect(() => {
     if (user) localStorage.setItem("auth_user", JSON.stringify(user));

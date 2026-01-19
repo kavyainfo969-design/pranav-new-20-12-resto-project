@@ -44,8 +44,11 @@ const WelcomePage = () => {
           // Called as onLogin(token, user)
           const token = email
           const user = password
-          // store token
-          if (token) localStorage.setItem('token', token)
+          // store token (keep backwards-compatible 'token' key and canonical 'auth_token')
+          if (token) {
+            try { localStorage.setItem('token', token) } catch (e) {}
+            try { localStorage.setItem('auth_token', token) } catch (e) {}
+          }
           if (user) localStorage.setItem('user', JSON.stringify(user))
           setShowAuthModal(false)
           showTemporaryToast(`Welcome, ${user?.name || 'User'}`)
@@ -61,8 +64,11 @@ const WelcomePage = () => {
         })
         const data = json || null
         if (!res.ok) throw new Error((data && data.message) || 'Login failed')
-        if (data && data.token) localStorage.setItem('token', data.token)
-          if (data && data.user) localStorage.setItem('user', JSON.stringify(data.user))
+        if (data && data.token) {
+          try { localStorage.setItem('token', data.token) } catch (e) {}
+          try { localStorage.setItem('auth_token', data.token) } catch (e) {}
+        }
+        if (data && data.user) localStorage.setItem('user', JSON.stringify(data.user))
         setShowAuthModal(false)
         navigate('/category')
       } catch (err) {
@@ -78,7 +84,8 @@ const WelcomePage = () => {
       try {
         // If Signup provided a token/user (auto-login from verify-otp), use it
         if (userData && userData.token && userData.user) {
-          localStorage.setItem('token', userData.token)
+          try { localStorage.setItem('token', userData.token) } catch (e) {}
+          try { localStorage.setItem('auth_token', userData.token) } catch (e) {}
           localStorage.setItem('user', JSON.stringify(userData.user))
           setShowAuthModal(false)
           showTemporaryToast(`Welcome, ${userData.user?.name || 'User'}`)
