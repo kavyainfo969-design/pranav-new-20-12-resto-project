@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { API_BASE } from '../../utils/apiBase'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../../context/CartContext'
 import { FaCreditCard, FaMoneyBillWave, FaWallet } from 'react-icons/fa'
@@ -46,7 +47,7 @@ const Checkout: React.FC = () => {
           total: total
         }
 
-        const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/orders`, {
+  const res = await fetch(`${API_BASE}/api/orders`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
           body: JSON.stringify(orderPayload)

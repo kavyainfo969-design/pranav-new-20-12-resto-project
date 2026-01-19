@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { API_BASE } from '../utils/apiBase'
 
 export type Role = "admin" | "superadmin" | null;
 
@@ -58,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!username || !password) throw new Error('Username and password required')
 
     // Try backend login with several likely email variants so demo creds work.
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+  const apiUrl = API_BASE
     const candidateEmails = [username, `${username}@local`, `${username}@restom.com`, `${username}@resto.com`, `${username}@kavyaresto`]
     for (const email of candidateEmails) {
       try {

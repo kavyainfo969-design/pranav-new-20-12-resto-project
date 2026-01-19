@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { API_BASE } from '../../utils/apiBase'
 import { useLocation, Link, useNavigate } from 'react-router-dom'
 import { menuItems as localMenuItems } from '../../data/menuItems'
 import { useCart } from '../../context/CartContext'
@@ -131,7 +132,7 @@ const Menu: React.FC = () => {
     let mounted = true
     ;(async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/menu`)
+        const res = await fetch(`${API_BASE}/api/menu`)
         if (!res.ok) throw new Error('Failed to fetch')
         const data = await res.json()
         if (mounted) {

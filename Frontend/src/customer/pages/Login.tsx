@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { API_BASE } from '../../utils/apiBase'
 import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa'
 
 interface LoginProps {
@@ -48,7 +49,7 @@ const Login: React.FC<LoginProps> = ({ onClose, onSwitchToSignup, onLogin }) => 
 
     setIsLoading(true)
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/login`, {
+  const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

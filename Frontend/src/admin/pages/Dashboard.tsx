@@ -12,6 +12,7 @@ import {
 
 import AdminLayout from "../components/AdminLayout";
 import { useAuth } from "../../context/AuthContext";
+import { API_BASE } from '../../utils/apiBase'
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ const Dashboard: React.FC = () => {
     let mounted = true
     const fetchOrders = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/orders`)
+  const res = await fetch(`${API_BASE}/api/orders`)
         if (!res.ok) throw new Error('Failed to fetch')
         const data = await res.json()
         if (mounted && data && Array.isArray(data.orders)) {
@@ -94,7 +95,7 @@ const Dashboard: React.FC = () => {
     // when running without auth middleware (or when proper auth is wired).
     ;(async () => {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+  const apiUrl = API_BASE
         // Use authFetch so Authorization header is included when available
         await authFetch(`${apiUrl}/api/orders/${id}/status`, {
           method: 'PUT',

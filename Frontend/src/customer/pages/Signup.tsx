@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { API_BASE } from '../../utils/apiBase'
 import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaPhone, FaArrowLeft } from 'react-icons/fa'
 
 interface SignupProps {
@@ -72,7 +73,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({ email, onVerify, onRe
     // Call backend to resend OTP
     (async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/resend-otp`, {
+  const res = await fetch(`${API_BASE}/api/auth/resend-otp`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email })
@@ -349,7 +350,7 @@ const Signup: React.FC<SignupProps> = ({ onClose, onSwitchToLogin, onSignup }) =
 
     setIsLoading(true)
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/signup`, {
+  const res = await fetch(`${API_BASE}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -387,7 +388,7 @@ const Signup: React.FC<SignupProps> = ({ onClose, onSwitchToLogin, onSignup }) =
     // Return the promise so the OTP modal can await it
     return (async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/verify-otp`, {
+  const res = await fetch(`${API_BASE}/api/auth/verify-otp`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: formData.email, otp }),
@@ -420,7 +421,7 @@ const Signup: React.FC<SignupProps> = ({ onClose, onSwitchToLogin, onSignup }) =
   const handleOTPResend = () => {
     ;(async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/signup`, {
+  const res = await fetch(`${API_BASE}/api/auth/signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

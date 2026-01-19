@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { API_BASE } from '../../utils/apiBase'
 import { Link, useNavigate } from 'react-router-dom'
 import { FaCreditCard, FaMobileAlt, FaWallet, FaArrowLeft, FaLock, FaUtensils, FaShoppingBag } from 'react-icons/fa'
 import { FaCheckCircle } from 'react-icons/fa'
@@ -535,7 +536,7 @@ const Payment: React.FC = () => {
 
       ;(async () => {
         try {
-          const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/orders`, {
+          const res = await fetch(`${API_BASE}/api/orders`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(orderPayload)

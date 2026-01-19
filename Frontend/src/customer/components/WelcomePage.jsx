@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { API_BASE } from '../../utils/apiBase'
 import { useNavigate } from 'react-router-dom'
 import Login from '../pages/Login'
 import Signup from '../pages/Signup'
@@ -52,7 +53,7 @@ const WelcomePage = () => {
         }
 
         // Fallback: if called with email/password strings, attempt login
-        const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/login`, {
+  const res = await fetch(`${API_BASE}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password }),
@@ -85,7 +86,7 @@ const WelcomePage = () => {
           return
         }
 
-        const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/login`, {
+  const res = await fetch(`${API_BASE}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: userData.email, password: userData.password }),
