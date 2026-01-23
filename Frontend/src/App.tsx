@@ -18,6 +18,7 @@ import Cart from './customer/pages/Cart';
 import Payment from './customer/pages/Payment';
 import Checkout from './customer/pages/Checkout';
 import OrderTracking from './customer/pages/OrderTracking';
+import Receipts from './customer/pages/Receipts';
 import HelpSupport from './customer/pages/HelpSupport';
 import TermsConditions from './customer/pages/TermsConditions';
 import PrivacyPolicy from './customer/pages/PrivacyPolicy';
@@ -26,6 +27,7 @@ import AdminLogin from './admin/pages/AdminLogin';
 import Dashboard from './admin/pages/Dashboard';
 import SuperAdminDashboard from './superadmin/pages/SuperAdminDashboard';
 import MenuManagement from './admin/pages/MenuManagement';
+import Kitchen from './admin/pages/Kitchen';
 import SalesAnalytics from './admin/pages/SalesAnalytics';
 import Reports from './admin/pages/Reports';
 import ProfileSettings from './admin/pages/ProfileSettings';
@@ -109,6 +111,7 @@ function AppContent() {
           <Route path="/payment" element={<Payment />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-tracking" element={<OrderTracking />} />
+          <Route path="/receipts" element={<Receipts />} />
           <Route path="/help-support" element={<HelpSupport />} />
           <Route path="/terms-conditions" element={<TermsConditions />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
@@ -141,6 +144,15 @@ function AppContent() {
             element={
               <RequireAuth allowedRoles={['admin', 'superadmin']}>
                 <MenuManagement />
+              </RequireAuth>
+            }
+          />
+
+          <Route
+            path="/admin/kitchen"
+            element={
+              <RequireAuth allowedRoles={['admin', 'superadmin']}>
+                <Kitchen />
               </RequireAuth>
             }
           />

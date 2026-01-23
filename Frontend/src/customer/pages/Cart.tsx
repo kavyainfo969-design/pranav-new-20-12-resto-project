@@ -41,7 +41,7 @@ const Cart: React.FC = () => {
   }
  
   return (
-    <div className="container py-5" style={{ overflowX: 'hidden' }}>
+    <div className="container py-4 py-md-5" style={{ overflowX: 'hidden', backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
       {/* 🧭 Header */}
       <div className="d-flex align-items-center mb-4">
         <Link
@@ -67,13 +67,28 @@ const Cart: React.FC = () => {
       <div className="row g-4">
         {/* 🧺 Cart Items */}
         <div className="col-12 col-lg-8">
-          <div className="card border-0 shadow-sm rounded-4">
+          <div className="card border-0 shadow-lg rounded-4" style={{ transition: 'all 0.3s ease' }}>
             <div className="card-body p-3 p-md-4" style={{ overflowX: 'hidden' }}>
               {cart.map((item) => (
                 <div
                   key={item.id}
                   className="d-flex align-items-center justify-content-between border-bottom py-3 flex-wrap flex-md-nowrap"
-                  style={{ gap: '10px', overflow: 'hidden' }}
+                  style={{ 
+                    gap: '10px', 
+                    overflow: 'hidden',
+                    transition: 'all 0.3s ease',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    marginBottom: '8px'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#f8f9fa'
+                    e.currentTarget.style.transform = 'translateX(5px)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                    e.currentTarget.style.transform = 'translateX(0)'
+                  }}
                 >
                   {/* 🖼️ Image + Details */}
                   <div
@@ -189,12 +204,12 @@ const Cart: React.FC = () => {
  
         {/* 🧾 Order Summary */}
         <div className="col-12 col-lg-4">
-          <div className="card border-0 shadow-sm rounded-4">
+          <div className="card border-0 shadow-lg rounded-4 sticky-top" style={{ top: '20px', transition: 'all 0.3s ease' }}>
             <div
               className="card-header text-white rounded-top-4"
-              style={{ background: 'linear-gradient(90deg, #FF6A00, #FF9900)' }}
+              style={{ background: 'linear-gradient(90deg, #FF6A00, #FF9900)', padding: '20px' }}
             >
-              <h5 className="mb-0 fw-semibold">Order Summary</h5>
+              <h5 className="mb-0 fw-bold">Order Summary</h5>
             </div>
  
             <div className="card-body p-4">
@@ -291,17 +306,46 @@ const Cart: React.FC = () => {
                     background: 'linear-gradient(90deg, #FF6A00, #FF9900)',
                     border: 'none'
                   }}
-                  onClick={() => {
+                  onClick={async () => {
                     const id = 'DINE' + Math.random().toString(36).substr(2, 6).toUpperCase()
+                    const total = parseFloat((getTotalPrice() * 1.05).toFixed(2))
                     const order = {
                       id,
-                      status: 'Confirmed',
-                      total: parseFloat((getTotalPrice() * 1.05).toFixed(2)),
+                      status: 'Pending',
+                      total,
                       paymentMethod: 'dine-in',
                       paymentLabel: 'Dine-In',
                       orderType: 'Dine-In',
-                      createdAt: new Date().toISOString()
+                      createdAt: new Date().toISOString(),
+                      items: cart.map(ci => ({ name: ci.name, quantity: ci.quantity, price: ci.price, spiceLevel: ci.spiceLevel }))
                     }
+
+                    // Create order in backend
+                    try {
+                      const { API_BASE } = await import('../../utils/apiBase')
+                      const { fetchJson } = await import('../../utils/fetchJson')
+                      const orderPayload = {
+                        restaurantId: 'default',
+                        items: cart.map(ci => ({ name: ci.name, price: ci.price, quantity: ci.quantity, spiceLevel: ci.spiceLevel, subtotal: (ci.price * ci.quantity) })),
+                        total,
+                        paymentStatus: 'paid',
+                        status: 'pending'
+                      }
+                      const { res, json } = await fetchJson(`${API_BASE}/api/orders`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(orderPayload)
+                      })
+                      if (res.ok && json && json.order) {
+                        const serverId = json.order._id || json.order.id
+                        order.id = serverId || id
+                        order.serverId = serverId
+                      }
+                    } catch (err) {
+                      console.warn('Failed to create order in backend:', err)
+                    }
+
+                    // Save locally
                     try {
                       const existing = JSON.parse(localStorage.getItem('orders') || '[]')
                       existing.push(order)
@@ -309,6 +353,28 @@ const Cart: React.FC = () => {
                     } catch (e) {
                       localStorage.setItem('orders', JSON.stringify([order]))
                     }
+                    
+                    // Save receipt
+                    const receipt = {
+                      id: `RCP-${order.id.slice(-8)}`,
+                      orderId: order.serverId || order.id,
+                      items: cart.map(ci => ({ name: ci.name, quantity: ci.quantity, price: ci.price, spiceLevel: ci.spiceLevel })),
+                      subtotal: getTotalPrice(),
+                      tax: getTotalPrice() * 0.05,
+                      total: total,
+                      paymentMethod: 'dine-in',
+                      orderType: 'Dine-In',
+                      createdAt: order.createdAt,
+                      status: 'Pending'
+                    }
+                    try {
+                      const receiptsStored = JSON.parse(localStorage.getItem('receipts') || '[]')
+                      receiptsStored.push(receipt)
+                      localStorage.setItem('receipts', JSON.stringify(receiptsStored))
+                    } catch (e) {
+                      console.warn('Failed to save receipt:', e)
+                    }
+                    
                     sessionStorage.setItem('paymentCompleted', 'true')
                     sessionStorage.setItem('paymentMethod', 'dine-in')
                     sessionStorage.setItem('orderType', 'Dine-In')

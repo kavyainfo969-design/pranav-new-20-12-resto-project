@@ -177,14 +177,24 @@ const WelcomePage = () => {
  
       {/* Button */}
       <button
-        className="btn text-white px-5 py-2 fw-semibold"
+        className="btn text-white px-5 py-3 fw-semibold"
         style={{
           background: 'linear-gradient(90deg, #FFA500, #FF6B00)',
           borderRadius: '25px',
-          boxShadow: '0px 4px 10px rgba(255, 107, 0, 0.3)',
-          fontSize: '15px',
+          boxShadow: '0px 4px 15px rgba(255, 107, 0, 0.4)',
+          fontSize: '16px',
+          transition: 'all 0.3s ease',
+          border: 'none'
         }}
         onClick={handleStart}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.05)'
+          e.currentTarget.style.boxShadow = '0px 6px 20px rgba(255, 107, 0, 0.5)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)'
+          e.currentTarget.style.boxShadow = '0px 4px 15px rgba(255, 107, 0, 0.4)'
+        }}
       >
         Ready to Order
       </button>

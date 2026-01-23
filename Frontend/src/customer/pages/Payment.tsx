@@ -226,7 +226,7 @@ const Payment: React.FC = () => {
   }
 
   const mainContent = (
-    <div className="container py-5" style={{ backgroundColor: 'var(--background-color)', minHeight: '100vh' }}>
+    <div className="container py-4 py-md-5" style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
       <div className="row justify-content-center">
         <div className="col-12 col-lg-8">
  
@@ -236,11 +236,20 @@ const Payment: React.FC = () => {
           </Link>
  
           {/* Total Card */}
-          <div className="card border-0 shadow-sm mb-4" style={{ background: 'linear-gradient(135deg, #FFA500, #FF6B00)', color: 'white', borderRadius: '15px' }}>
+          <div className="card border-0 shadow-lg mb-4" style={{ 
+            background: 'linear-gradient(135deg, #FFA500, #FF6B00)', 
+            color: 'white', 
+            borderRadius: '15px',
+            transition: 'transform 0.3s ease',
+            transform: 'scale(1)'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+          >
             <div className="card-body text-center p-4">
-              <h4>Total Amount</h4>
-              <h2 className="fw-bold">₹{total.toFixed(2)}</h2>
-              <p className="mb-0 opacity-75">{orderType} Order</p>
+              <h4 className="mb-2">Total Amount</h4>
+              <h2 className="fw-bold mb-2" style={{ fontSize: '2.5rem' }}>₹{total.toFixed(2)}</h2>
+              <p className="mb-0 opacity-75 fw-semibold">{orderType} Order</p>
             </div>
           </div>
  
@@ -271,9 +280,9 @@ const Payment: React.FC = () => {
           </div>
 
           {/* Payment Methods */}
-          <div className="card border-0 shadow-sm">
-            <div className="card-header bg-white border-0">
-              <h5 className="fw-bold">Select Payment Method</h5>
+          <div className="card border-0 shadow-lg rounded-4">
+            <div className="card-header bg-white border-0 rounded-top-4" style={{ padding: '20px' }}>
+              <h5 className="fw-bold mb-0">Select Payment Method</h5>
             </div>
             <div className="card-body p-4">
  
@@ -281,7 +290,7 @@ const Payment: React.FC = () => {
                 <div
                   key={method.id}
                   className={`payment-option mb-3 p-3 rounded-3 border cursor-pointer ${
-                    selectedPayment === method.id ? 'border-primary bg-light' : 'border-secondary'
+                    selectedPayment === method.id ? 'border-primary bg-light shadow-sm' : 'border-secondary'
                   }`}
                   onClick={() => {
                     setSelectedPayment(method.id)
@@ -292,7 +301,11 @@ const Payment: React.FC = () => {
                       setUpiError('')
                     }
                   }}
-                  style={{ transition: '0.3s', cursor: 'pointer' }}
+                  style={{ 
+                    transition: 'all 0.3s ease', 
+                    cursor: 'pointer',
+                    transform: selectedPayment === method.id ? 'translateX(5px)' : 'translateX(0)'
+                  }}
                 >
                   <div className="d-flex align-items-center">
                     <div className="text-primary">{method.icon}</div>
@@ -521,19 +534,24 @@ const Payment: React.FC = () => {
         createdAt: new Date().toISOString()
       }
 
-      // Persist order to backend so admin dashboard can fetch it.
-      const orderPayload = {
-        restaurantId: import.meta.env.VITE_RESTAURANT_ID || 'default_restaurant',
+      // Persist order to backend so admin dashboard and kitchen can fetch it.
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('token')
+      const orderPayload: any = {
+        restaurantId: import.meta.env.VITE_RESTAURANT_ID || 'default',
         items: cart.map(ci => ({ name: ci.name, price: ci.price, quantity: ci.quantity, spiceLevel: ci.spiceLevel, subtotal: (ci.price * ci.quantity) })),
         total: parseFloat(total.toFixed(2)),
-        paymentStatus: 'paid'
+        paymentStatus: 'paid',
+        status: 'pending' // Set initial status as pending for kitchen
       }
 
       ;(async () => {
         try {
+          const headers: any = { 'Content-Type': 'application/json' }
+          if (token) headers['Authorization'] = `Bearer ${token}`
+          
           const { res, json } = await fetchJson(`${API_BASE}/api/orders`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify(orderPayload)
           })
           if (!res.ok) {
@@ -562,10 +580,32 @@ const Payment: React.FC = () => {
           paymentMethod: order.paymentMethod,
           paymentLabel: order.paymentLabel,
           orderType: order.orderType,
-          items: cart.map(ci => ({ name: ci.name, quantity: ci.quantity, price: ci.price }))
+          items: cart.map(ci => ({ name: ci.name, quantity: ci.quantity, price: ci.price, spiceLevel: ci.spiceLevel }))
         }
         ordersArr.push(clientOrder)
         localStorage.setItem('orders', JSON.stringify(ordersArr))
+        
+        // Save receipt
+        const receipt = {
+          id: `RCP-${order.id.slice(-8)}`,
+          orderId: sessionStorage.getItem('serverOrderId') || order.id,
+          items: cart.map(ci => ({ name: ci.name, quantity: ci.quantity, price: ci.price, spiceLevel: ci.spiceLevel })),
+          subtotal: subtotal,
+          tax: tax,
+          total: total,
+          paymentMethod: order.paymentMethod,
+          orderType: order.orderType,
+          createdAt: order.createdAt,
+          status: 'Pending'
+        }
+        try {
+          const receiptsStored = JSON.parse(localStorage.getItem('receipts') || '[]')
+          receiptsStored.push(receipt)
+          localStorage.setItem('receipts', JSON.stringify(receiptsStored))
+        } catch (e) {
+          console.warn('Failed to save receipt:', e)
+        }
+        
         // also store a convenient lastOrder object (used by OrderSuccess QR generation)
         const totalQuantity = clientOrder.items.reduce((s:number, it:any) => s + (it.quantity || 0), 0)
         try {

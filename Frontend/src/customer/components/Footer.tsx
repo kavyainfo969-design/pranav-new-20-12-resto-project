@@ -10,7 +10,7 @@ import {
 const Footer: React.FC = () => {
   return (
     <>
-      <footer className="bg-dark text-light pt-5 pb-3" style={{ marginTop: 'auto', flexShrink: 0, width: '100%' }}>
+      <footer className="bg-dark text-light pt-5 pb-3" style={{ marginTop: 'auto', flexShrink: 0, width: '100%', background: 'linear-gradient(180deg, #1a1a1a, #2d2d2d)' }}>
         <div className="container">
           {/* ===== Top Section ===== */}
           <div
