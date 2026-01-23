@@ -1,4 +1,6 @@
 const Order = require('../models/Order');
+let sse;
+try { sse = require('../sse'); } catch (e) { sse = null; }
 
 exports.createOrder = async (req, res) => {
   try {
@@ -12,9 +14,11 @@ exports.createOrder = async (req, res) => {
     if (paymentStatus) orderData.paymentStatus = paymentStatus;
     if (paymentMethod) orderData.paymentMethod = paymentMethod;
 
-    const order = new Order(orderData);
-    await order.save();
-    return res.status(201).json({ order });
+  const order = new Order(orderData);
+  await order.save();
+  // Broadcast new order to SSE clients (if available)
+  try { if (sse) sse.sendEvent('order-created', order); } catch (e) {}
+  return res.status(201).json({ order });
   } catch (err) {
     console.error('Create order error:', err);
     return res.status(500).json({ message: 'Failed to create order' });
@@ -50,9 +54,11 @@ exports.updateStatus = async (req, res) => {
   try {
     const { status } = req.body;
     if (!status) return res.status(400).json({ message: 'Status required' });
-    const order = await Order.findByIdAndUpdate(req.params.id, { status, updatedAt: Date.now() }, { new: true });
-    if (!order) return res.status(404).json({ message: 'Order not found' });
-    return res.json({ order });
+  const order = await Order.findByIdAndUpdate(req.params.id, { status, updatedAt: Date.now() }, { new: true });
+  if (!order) return res.status(404).json({ message: 'Order not found' });
+  // Broadcast status change to SSE clients
+  try { if (sse) sse.sendEvent('order-updated', order); } catch (e) {}
+  return res.json({ order });
   } catch (err) {
     console.error('Update order status error:', err);
     return res.status(500).json({ message: 'Failed to update order status' });

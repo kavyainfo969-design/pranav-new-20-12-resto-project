@@ -72,6 +72,88 @@ const Kitchen: React.FC<KitchenProps> = ({ publicView = false }) => {
     };
   }, []);
 
+  // SSE: subscribe to live order events (order-created, order-updated)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let es: EventSource | null = null;
+    try {
+      es = new EventSource(`${API_BASE}/api/orders/stream`);
+    } catch (e) {
+      es = null;
+    }
+
+    const mapBackendOrder = (o: any) => ({
+      id: o._id || o.id,
+      customerName: (o.user && o.user.name) || (o.customerName) || 'Guest',
+      customerEmail: (o.user && o.user.email) || (o.customerEmail) || '',
+      items: o.items || [],
+      total: o.total || 0,
+      status: o.status ? (o.status.charAt(0).toUpperCase() + o.status.slice(1)) : 'Pending',
+      createdAt: o.createdAt || new Date().toISOString(),
+      paymentStatus: o.paymentStatus || 'pending'
+    });
+
+    const handleCreated = (e: MessageEvent) => {
+      try {
+        const raw = JSON.parse(e.data);
+        const o = mapBackendOrder(raw);
+        // only show paid orders
+        if (o.paymentStatus === 'paid') {
+          setOrders(prev => {
+            if (prev.find(p => p.id === o.id)) return prev;
+            const next = [o, ...prev];
+            next.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            return next;
+          });
+        }
+      } catch (err) { /* ignore parse errors */ }
+    };
+
+    const handleUpdated = (e: MessageEvent) => {
+      try {
+        const raw = JSON.parse(e.data);
+        const o = mapBackendOrder(raw);
+        setOrders(prev => {
+          const idx = prev.findIndex(p => p.id === o.id);
+          if (idx === -1) {
+            // if it became paid, add it
+            if (o.paymentStatus === 'paid') return [o, ...prev];
+            return prev;
+          }
+          const copy = [...prev];
+          // If paymentStatus changed to not paid, remove
+          if (o.paymentStatus !== 'paid') {
+            copy.splice(idx, 1);
+            return copy;
+          }
+          copy[idx] = { ...copy[idx], ...o };
+          // keep newest first
+          copy.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          return copy;
+        });
+      } catch (err) { /* ignore */ }
+    };
+
+    if (es) {
+      es.addEventListener('order-created', handleCreated as any);
+      es.addEventListener('order-updated', handleUpdated as any);
+      es.addEventListener('error', () => {
+        // SSE failed — close and rely on polling
+        try { es && es.close(); } catch (e) {}
+      });
+    }
+
+    return () => {
+      try {
+        if (es) {
+          es.removeEventListener('order-created', handleCreated as any);
+          es.removeEventListener('order-updated', handleUpdated as any);
+          es.close();
+        }
+      } catch (e) {}
+    };
+  }, []);
+
   const updateOrderStatus = async (
     id: string,
     status: "Pending" | "Preparing" | "Served"

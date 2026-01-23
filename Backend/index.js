@@ -67,6 +67,17 @@ const ordersRoutes = require('./routes/ordersRoutes');
 app.use('/api/orders', ordersRoutes);
 console.log('📌 Orders routes mounted at /api/orders');
 
+// SSE endpoint for order events (clients can subscribe with EventSource)
+try {
+  const sse = require('./sse');
+  app.get('/api/orders/stream', (req, res) => {
+    sse.addClient(req, res);
+  });
+  console.log('📌 Orders SSE stream mounted at /api/orders/stream');
+} catch (e) {
+  console.warn('SSE module unavailable:', e && e.message);
+}
+
 const paymentsRoutes = require('./routes/paymentsRoutes');
 app.use('/api/payments', paymentsRoutes);
 console.log('📌 Payments routes mounted at /api/payments');
