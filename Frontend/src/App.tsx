@@ -79,11 +79,20 @@ function App() {
 function AppContent() {
   const location = useLocation();
 
-  const isAdminRoute =
-    location.pathname.startsWith('/admin') ||
-    location.pathname.startsWith('/admin-panel');
+  // With HashRouter the visible SPA path lives in location.hash (e.g. "#/admin/kitchen").
+  // Build a normalized `spaPath` that prefers the hash (when present) and falls back
+  // to pathname so route checks work in both dev (history) and deployed hash mode.
+  const spaPath = ((): string => {
+    if (location.hash && location.hash.length > 0) {
+      // strip leading '#' and ensure it starts with '/'
+      return location.hash.startsWith('#') ? location.hash.slice(1) : location.hash;
+    }
+    return location.pathname || '/';
+  })();
 
-  const isWelcomePage = location.pathname === '/';
+  const isAdminRoute = spaPath.startsWith('/admin') || spaPath.startsWith('/admin-panel');
+
+  const isWelcomePage = spaPath === '/';
 
   return (
     <div
