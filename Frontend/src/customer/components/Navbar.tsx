@@ -8,7 +8,16 @@ import { useAuth } from '../../context/AuthContext'
 const Navbar: React.FC = () => {
   const { getTotalItems, cartAnimation } = useCart()
   const location = useLocation()
-  const isAdminRoute = location.pathname.startsWith('/admin') || location.pathname.startsWith('/admin-panel')
+  // Normalize SPA path to support HashRouter (hash like "#/admin/kitchen") and
+  // HistoryRouter (pathname). This mirrors the logic in App.tsx so route checks
+  // behave consistently both locally and in deployed hash-mode.
+  const spaPath = (() => {
+    if (location.hash && location.hash.length > 0) {
+      return location.hash.startsWith('#') ? location.hash.slice(1) : location.hash
+    }
+    return location.pathname || '/'
+  })()
+  const isAdminRoute = spaPath.startsWith('/admin') || spaPath.startsWith('/admin-panel')
   let auth = null
   try {
     auth = useAuth()
