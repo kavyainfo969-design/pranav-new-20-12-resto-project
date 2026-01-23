@@ -120,6 +120,9 @@ function AppContent() {
           <Route path="/admin-panel" element={<AdminLogin />} />
           <Route path="/admin" element={<Navigate to="/admin-panel" replace />} />
 
+          {/* Public Kitchen view (no auth required) - useful for a dedicated kitchen display */}
+          <Route path="/kitchen" element={<Kitchen publicView={true} />} />
+
           {/* Admin Protected Routes */}
           <Route
             path="/admin/dashboard"

@@ -11,18 +11,23 @@ import { useAuth } from "../../context/AuthContext";
 import { API_BASE } from '../../utils/apiBase'
 import { fetchJson } from '../../utils/fetchJson'
 
-const Kitchen: React.FC = () => {
+type KitchenProps = {
+  publicView?: boolean;
+};
+
+const Kitchen: React.FC<KitchenProps> = ({ publicView = false }) => {
   const navigate = useNavigate();
   const { user, authFetch } = useAuth();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Authentication check
+  // Authentication check (skip when rendering public kitchen view)
   useEffect(() => {
+    if (publicView) return;
     if (!user || (user.role !== "admin" && user.role !== "superadmin")) {
       navigate("/admin-panel");
     }
-  }, [user, navigate]);
+  }, [user, navigate, publicView]);
 
   // Fetch orders from backend (poll every 5 seconds)
   useEffect(() => {
@@ -71,6 +76,8 @@ const Kitchen: React.FC = () => {
     id: string,
     status: "Pending" | "Preparing" | "Served"
   ) => {
+    // If this is the public kitchen view, do not allow status updates
+    if (publicView) return;
     // Optimistically update UI
     setOrders((prev) =>
       prev.map((o) => (o.id === id ? { ...o, status } : o))
@@ -267,17 +274,21 @@ const Kitchen: React.FC = () => {
                           </small>
                         </div>
 
-                        <select
-                          className="form-select form-select-sm"
-                          value={order.status}
-                          onChange={(e) =>
-                            updateOrderStatus(order.id, e.target.value as any)
-                          }
-                        >
-                          <option value="Pending">Pending</option>
-                          <option value="Preparing">Preparing</option>
-                          <option value="Served">Served</option>
-                        </select>
+                        {!publicView ? (
+                          <select
+                            className="form-select form-select-sm"
+                            value={order.status}
+                            onChange={(e) =>
+                              updateOrderStatus(order.id, e.target.value as any)
+                            }
+                          >
+                            <option value="Pending">Pending</option>
+                            <option value="Preparing">Preparing</option>
+                            <option value="Served">Served</option>
+                          </select>
+                        ) : (
+                          <div className="text-end small text-muted">Status: {order.status}</div>
+                        )}
                       </div>
                     </div>
                   ))
