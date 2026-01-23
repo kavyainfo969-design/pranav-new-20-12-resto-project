@@ -50,12 +50,13 @@ const Kitchen: React.FC<KitchenProps> = ({ publicView = false }) => {
             paymentStatus: o.paymentStatus || 'pending'
           }));
 
-          // Filter only paid orders and sort by creation time (newest first)
-          const paidOrders = mappedOrders
-            .filter((o: any) => o.paymentStatus === 'paid')
+          // Show orders that are not failed (this includes pending and paid)
+          // so the kitchen can begin preparing orders even before payment confirmation
+          const visibleOrders = mappedOrders
+            .filter((o: any) => o.paymentStatus !== 'failed')
             .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-          setOrders(paidOrders);
+          setOrders(visibleOrders);
           setLoading(false);
         }
       } catch (err) {
