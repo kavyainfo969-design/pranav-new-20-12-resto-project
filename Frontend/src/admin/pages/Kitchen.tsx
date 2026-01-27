@@ -98,12 +98,18 @@ const Kitchen: React.FC<KitchenProps> = ({ publicView = false }) => {
       try {
         const raw = JSON.parse(e.data);
         const o = mapBackendOrder(raw);
-        // only show paid orders
-        if (o.paymentStatus === 'paid') {
+        // mark as new briefly so UI can highlight the arrival
+        (o as any).isNew = true;
+        // show orders that are not failed
+        if (o.paymentStatus !== 'failed') {
           setOrders(prev => {
             if (prev.find(p => p.id === o.id)) return prev;
             const next = [o, ...prev];
             next.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            // remove isNew after a short delay
+            setTimeout(() => {
+              setOrders(cur => cur.map(c => c.id === o.id ? { ...c, isNew: false } : c));
+            }, 6000);
             return next;
           });
         }
@@ -117,17 +123,21 @@ const Kitchen: React.FC<KitchenProps> = ({ publicView = false }) => {
         setOrders(prev => {
           const idx = prev.findIndex(p => p.id === o.id);
           if (idx === -1) {
-            // if it became paid, add it
-            if (o.paymentStatus === 'paid') return [o, ...prev];
+            // if it became visible (not failed), add it
+            if (o.paymentStatus !== 'failed') return [o, ...prev];
             return prev;
           }
           const copy = [...prev];
-          // If paymentStatus changed to not paid, remove
-          if (o.paymentStatus !== 'paid') {
+          // If paymentStatus changed to failed, remove
+          if (o.paymentStatus === 'failed') {
             copy.splice(idx, 1);
             return copy;
           }
-          copy[idx] = { ...copy[idx], ...o };
+          // mark briefly as updated so kitchen can highlight status changes
+          copy[idx] = { ...copy[idx], ...o, justUpdated: true };
+          setTimeout(() => {
+            setOrders(cur => cur.map(c => c.id === o.id ? { ...c, justUpdated: false } : c));
+          }, 4000);
           // keep newest first
           copy.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
           return copy;
@@ -313,16 +323,25 @@ const Kitchen: React.FC<KitchenProps> = ({ publicView = false }) => {
                 {pendingOrders.length === 0 ? (
                   <p className="text-muted text-center py-4">No pending orders</p>
                 ) : (
-                  pendingOrders.map((order) => (
+                  pendingOrders.map((order, idx) => (
                     <div
                       key={order.id}
                       className="card mb-3 shadow-sm"
-                      style={{ borderRadius: "8px" }}
+                      style={{ borderRadius: "8px", transition: 'box-shadow 0.3s ease', boxShadow: order.isNew ? '0 8px 30px rgba(255,165,0,0.25)' : undefined }}
                     >
                       <div className="card-body p-3">
                         <div className="d-flex justify-content-between align-items-start mb-2">
                           <div>
-                            <h6 className="fw-bold mb-1">Order #{order.id.slice(-6)}</h6>
+                            <h6 className="fw-bold mb-1">
+                              <span className="badge bg-primary text-white me-2">#{idx + 1}</span>
+                              Order #{order.id.slice(-6)}
+                              {order.isNew && (
+                                <span className="badge bg-danger text-white ms-2">New</span>
+                              )}
+                              {order.justUpdated && (
+                                <span className="badge bg-info text-white ms-2">Updated</span>
+                              )}
+                            </h6>
                             <small className="text-muted">
                               {order.customerName}
                             </small>
@@ -393,16 +412,22 @@ const Kitchen: React.FC<KitchenProps> = ({ publicView = false }) => {
                 {preparingOrders.length === 0 ? (
                   <p className="text-muted text-center py-4">No orders being prepared</p>
                 ) : (
-                  preparingOrders.map((order) => (
+                  preparingOrders.map((order, idx) => (
                     <div
                       key={order.id}
                       className="card mb-3 shadow-sm"
-                      style={{ borderRadius: "8px" }}
+                      style={{ borderRadius: "8px", transition: 'box-shadow 0.3s ease', boxShadow: order.justUpdated ? '0 8px 30px rgba(23,162,184,0.12)' : undefined }}
                     >
                       <div className="card-body p-3">
                         <div className="d-flex justify-content-between align-items-start mb-2">
                           <div>
-                            <h6 className="fw-bold mb-1">Order #{order.id.slice(-6)}</h6>
+                            <h6 className="fw-bold mb-1">
+                              <span className="badge bg-primary text-white me-2">#{idx + 1}</span>
+                              Order #{order.id.slice(-6)}
+                              {order.justUpdated && (
+                                <span className="badge bg-info text-white ms-2">Updated</span>
+                              )}
+                            </h6>
                             <small className="text-muted">
                               {order.customerName}
                             </small>

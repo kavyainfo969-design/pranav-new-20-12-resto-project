@@ -71,6 +71,71 @@ const Dashboard: React.FC = () => {
     return () => { mounted = false; clearInterval(id) }
   }, [])
 
+  // SSE: subscribe to order-created and order-updated so the dashboard updates live
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let es: EventSource | null = null;
+    try {
+      es = new EventSource(`${API_BASE}/api/orders/stream`);
+    } catch (e) {
+      es = null;
+    }
+
+    const mapBackendOrder = (o: any) => ({
+      id: o._id || o.id,
+      customerName: (o.user && o.user.name) || (o.customerName) || 'Guest',
+      customerEmail: (o.user && o.user.email) || (o.customerEmail) || '',
+      items: o.items || [],
+      total: o.total || 0,
+      status: o.status ? (o.status.charAt(0).toUpperCase() + o.status.slice(1)) : 'Pending',
+    });
+
+    const handleCreated = (e: MessageEvent) => {
+      try {
+        const raw = JSON.parse(e.data);
+        const o = mapBackendOrder(raw);
+        setLocalOrders(prev => {
+          if (prev.find(p => p.id === o.id)) return prev;
+          return [o, ...prev];
+        });
+      } catch (err) { }
+    };
+
+    const handleUpdated = (e: MessageEvent) => {
+      try {
+        const raw = JSON.parse(e.data);
+        const o = mapBackendOrder(raw);
+        setLocalOrders(prev => {
+          const idx = prev.findIndex(p => p.id === o.id);
+          if (idx === -1) return prev;
+          const copy = [...prev];
+          // preserve Served if locally set previously
+          if (copy[idx].status === 'Served') return copy;
+          copy[idx] = { ...copy[idx], ...o };
+          return copy;
+        });
+      } catch (err) { }
+    };
+
+    if (es) {
+      es.addEventListener('order-created', handleCreated as any);
+      es.addEventListener('order-updated', handleUpdated as any);
+      es.addEventListener('error', () => {
+        try { es && es.close(); } catch (e) {}
+      });
+    }
+
+    return () => {
+      try {
+        if (es) {
+          es.removeEventListener('order-created', handleCreated as any);
+          es.removeEventListener('order-updated', handleUpdated as any);
+          es.close();
+        }
+      } catch (e) {}
+    };
+  }, [])
+
   // FIXED: Authentication
   useEffect(() => {
     if (!user || user.role !== "admin") {
@@ -210,7 +275,7 @@ const Dashboard: React.FC = () => {
 
           {/* DESKTOP VIEW */}
           <div className="d-none d-md-block">
-            {localOrders.map((order) => (
+            {localOrders.map((order, idx) => (
               <div
                 key={order.id}
                 className="d-flex align-items-center justify-content-between p-3 mb-2 rounded"
@@ -219,10 +284,14 @@ const Dashboard: React.FC = () => {
                   boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
                 }}
               >
-                <div className="col-md-2 fw-bold">{order.id}</div>
+                <div className="col-md-2 fw-bold">#{idx + 1} {order.id}</div>
 
                 <div className="col-md-2">
-                  <div className="fw-semibold">{order.customerName}</div>
+                  <div className="fw-semibold">{order.customerName}
+                    {(order as any).justUpdated && (
+                      <span className="badge bg-info text-white ms-2">Updated</span>
+                    )}
+                  </div>
                   <small className="text-muted">{order.customerEmail}</small>
                 </div>
 
