@@ -81,7 +81,7 @@ const Category: React.FC = () => {
   };
 
   return (
-    <div className="container py-5" style={{ backgroundColor: 'var(--background-color)', minHeight: '100vh' }}>
+    <div className="container py-4 py-md-5" style={{ backgroundColor: 'var(--background-color)', minHeight: '100vh' }}>
       {/* 🔍 Search Bar */}
       <div className="row justify-content-center mb-4 position-relative">
         
@@ -211,9 +211,9 @@ const Category: React.FC = () => {
       </div>
 
       {/* Category Cards */}
-      <div className="row g-4 justify-content-center">
+      <div className="row g-3 g-md-4 justify-content-center">
         {filteredCategories.map(category => (
-          <div key={category.name} className="col-12 col-sm-6 col-md-3 col-lg-2">
+          <div key={category.name} className="col-6 col-sm-4 col-md-3 col-lg-2">
                 {(() => {
                   // build target URL or render a local button when selection is required
                   const toUrl = category.name === 'All Items'
@@ -236,7 +236,16 @@ const Category: React.FC = () => {
                           style={{
                             borderRadius: '20px',
                             transition: 'all 0.3s ease-in-out',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            backgroundColor: 'white'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)'
+                            e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.15)'
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0) scale(1)'
+                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'
                           }}
                         >
                           <div className="card-body d-flex flex-column justify-content-center p-2 p-md-4">
@@ -268,14 +277,23 @@ const Category: React.FC = () => {
 
                   return (
                     <Link to={toUrl} className="text-decoration-none">
-                      <div
-                        className="card h-100 border-0 shadow-sm text-center position-relative overflow-hidden"
-                        style={{
-                          borderRadius: '20px',
-                          transition: 'all 0.3s ease-in-out',
-                          cursor: 'pointer'
-                        }}
-                      >
+                        <div
+                          className="card h-100 border-0 shadow-sm text-center position-relative overflow-hidden"
+                          style={{
+                            borderRadius: '20px',
+                            transition: 'all 0.3s ease-in-out',
+                            cursor: 'pointer',
+                            backgroundColor: 'white'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)'
+                            e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.15)'
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0) scale(1)'
+                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'
+                          }}
+                        >
                         <div className="card-body d-flex flex-column justify-content-center p-2 p-md-4">
                           <div className="d-none d-sm-block" style={{ fontSize: '1.8rem', marginBottom: '0.8rem' }}>
                             {category.icon}

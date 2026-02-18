@@ -71,6 +71,21 @@ const paymentsRoutes = require('./routes/paymentsRoutes');
 app.use('/api/payments', paymentsRoutes);
 console.log('📌 Payments routes mounted at /api/payments');
 
+// Health endpoint - reports DB connection state for quick checks
+app.get('/api/health', (req, res) => {
+  try {
+    const state = mongoose.connection.readyState; // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+    const labels = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+    return res.json({
+      status: (state === 1) ? 'ok' : 'error',
+      dbState: labels[state] || state,
+      readyState: state
+    });
+  } catch (err) {
+    return res.status(500).json({ status: 'error', error: String(err) });
+  }
+});
+
 // Root test
 app.get("/", (req, res) => {
   res.send("Backend is running!");

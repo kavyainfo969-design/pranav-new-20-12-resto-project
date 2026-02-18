@@ -11,6 +11,7 @@ import {
   FaCreditCard,
   FaFileInvoice,
   FaBuilding,
+  FaFire,
 } from "react-icons/fa";
 import "./AdminSidebar.css";
 import { useAuth } from "../../context/AuthContext";
@@ -81,6 +82,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ onToggle, isOpen = false })
         ]
       : [
           { path: "/admin/dashboard", icon: <FaTachometerAlt />, text: "Dashboard" },
+          { path: "/admin/kitchen", icon: <FaFire />, text: "Kitchen" },
           { path: "/admin/menu", icon: <FaUtensils />, text: "Menu Management" },
           { path: "/admin/analytics", icon: <FaChartLine />, text: "Sales Analytics" },
           { path: "/admin/reports", icon: <FaFileAlt />, text: "Reports" },

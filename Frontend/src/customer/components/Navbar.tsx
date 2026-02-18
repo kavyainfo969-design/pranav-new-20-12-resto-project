@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { FaShoppingCart, FaUtensils, FaMoon, FaSun } from 'react-icons/fa'
+import { FaShoppingCart, FaUtensils, FaMoon, FaSun, FaFileInvoice } from 'react-icons/fa'
 import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
 // import {lg} from 'Logo.png';
@@ -95,7 +95,7 @@ const Navbar: React.FC = () => {
   }
  
   return (
-    <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-0 position-sticky top-0" style={{ zIndex: 1000 }}>
+    <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-lg py-0 position-sticky top-0" style={{ zIndex: 1000, backdropFilter: 'blur(10px)', backgroundColor: 'rgba(255, 255, 255, 0.95)' }}>
       <div className="container d-flex justify-content-between align-items-center position-relative">
        
         {/* 🍴 Brand (logo left) */}
@@ -171,6 +171,10 @@ const Navbar: React.FC = () => {
           {/* Auth action buttons inserted when user is logged in */}
           {isLoggedIn && (
             <div className="d-flex align-items-center ms-3 gap-2">
+              <Link to="/receipts" className="btn btn-outline-primary">
+                <FaFileInvoice className="me-1" />
+                Receipts
+              </Link>
               <Link to="/order-tracking" className="btn btn-outline-secondary">Track Order</Link>
               <button
                 className="btn btn-outline-danger"
@@ -217,6 +221,9 @@ const Navbar: React.FC = () => {
           </button>
           {isLoggedIn && (
             <>
+              <Link to="/receipts" className="btn btn-sm btn-outline-primary me-2 d-inline-block d-lg-none">
+                <FaFileInvoice />
+              </Link>
               <Link to="/order-tracking" className="btn btn-sm btn-outline-secondary me-2 d-inline-block d-lg-none">Track</Link>
               <button
                 className="btn btn-sm btn-outline-danger"
